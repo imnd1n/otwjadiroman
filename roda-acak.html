@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Roda Acak Kerja</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700&display=swap">
+<style>
+/* Layout: roda di kiri, hasil di kanan (menumpuk di HP). Satu momen berani: roda besar berwarna. */
+:root{
+  --bg:#F3F1FA; --surface:#FFFFFF; --ink:#1E1B3A; --muted:#5B5878; --line:#D9D5EC; --tint:#E7E3F6;
+  --accent:#C2186B; --accent-soft:#F8DCEA; --on-accent:#FFFFFF; --ok:#1F7A4D;
+  --s1:#F6C9BD; --s2:#F7DFA1; --s3:#BFE3DB; --s4:#C9D8F8; --s5:#DDD0F2; --seg-ink:#1E1B3A;
+  --display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14122A; --surface:#1E1B3E; --ink:#EEEBFA; --muted:#A7A3C8; --line:#34305E; --tint:#27234D;
+    --accent:#FF6FB1; --accent-soft:#4A1F39; --on-accent:#14122A; --ok:#5DD39E;
+    --s1:#5A2E27; --s2:#5A4A1E; --s3:#1F4F4A; --s4:#243A66; --s5:#3F2E63; --seg-ink:#F1EEF8; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14122A; --surface:#1E1B3E; --ink:#EEEBFA; --muted:#A7A3C8; --line:#34305E; --tint:#27234D;
+  --accent:#FF6FB1; --accent-soft:#4A1F39; --on-accent:#14122A; --ok:#5DD39E;
+  --s1:#5A2E27; --s2:#5A4A1E; --s3:#1F4F4A; --s4:#243A66; --s5:#3F2E63; --seg-ink:#F1EEF8; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--body); font-size:17px; line-height:1.6;
+  padding-block:36px 72px;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:940px;margin-inline:auto;display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--display);font-weight:600;line-height:1.1;margin:0;text-wrap:balance}
+h1{font-size:clamp(2.2rem,7vw,3.6rem)}
+h2{font-size:clamp(1.4rem,4vw,1.9rem)}
+h3{font-size:1.1rem}
+p{margin:0}
+.eyebrow{font-weight:700;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.lede{max-width:60ch;font-size:1.1rem}
+.muted{color:var(--muted)}
+.note{font-size:.88rem;color:var(--muted)}
+mark{background:var(--accent);color:var(--on-accent);padding:0 .22em;border-radius:6px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.stage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:760px){.stage{grid-template-columns:1fr}}
+.wheelcol{display:flex;flex-direction:column;align-items:center;gap:18px;min-width:0}
+.wheelbox{position:relative;width:100%;max-width:400px}
+.wheelbox canvas{width:100%;aspect-ratio:1;display:block}
+.pointer{position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:26px solid var(--accent);filter:drop-shadow(0 2px 0 var(--surface))}
+.btn{font:inherit;font-family:var(--display);font-weight:600;font-size:1.1rem;padding:13px 30px;border-radius:999px;border:0;background:var(--accent);color:var(--on-accent);cursor:pointer}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line);font-size:.95rem;padding:9px 18px}
+.btn.ghost:hover{border-color:var(--ink)}
+.btn.small{font-size:.92rem;padding:9px 16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;display:grid;gap:16px;min-width:0}
+.card .vibe{font-size:.95rem;color:var(--muted)}
+.challenge{background:var(--accent-soft);border-radius:12px;padding:14px 16px}
+.challenge b{font-family:var(--display);font-weight:600;display:block;margin-bottom:2px}
+.card ol{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.card dl{margin:0;display:grid;gap:10px}
+.card dt{font-weight:700;font-size:.75rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.card dd{margin:2px 0 0}
+.warn{border-left:4px solid var(--accent);padding-left:12px;font-size:.92rem}
+.actions{display:flex;flex-wrap:wrap;gap:10px}
+.placeholder{display:grid;gap:8px}
+.placeholder h2{font-size:1.5rem}
+
+.list{display:grid;gap:8px;min-width:0}
+.item{display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+.item label{display:flex;gap:10px;align-items:center;flex:1;min-width:0;cursor:pointer}
+.item input{width:18px;height:18px;accent-color:var(--ok);flex:none}
+.item input:checked+span{color:var(--muted);text-decoration:line-through}
+.item .x{font:inherit;background:none;border:0;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:6px}
+.item .x:hover{color:var(--accent)}
+.empty{padding:16px;border:2px dashed var(--line);border-radius:12px;color:var(--muted)}
+details.all{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+details.all summary{cursor:pointer;font-weight:700}
+details.all ul{margin:10px 0 0;padding-left:1.2em;display:grid;gap:4px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header style="display:flex;flex-direction:column;gap:14px">
+  <p class="eyebrow">Pekerjaan di luar bidangmu</p>
+  <h1>Putar rodanya. <mark>Coba satu hal baru</mark> minggu ini.</h1>
+  <p class="lede">Dua belas ide pekerjaan yang random tapi seru. Setiap hasil ada tantangan kecil yang bisa kamu selesaikan dalam beberapa jam, jadi kamu bisa menguji dulu sebelum benar-benar mendaftar. Ini ide, bukan lowongan.</p>
+</header>
+
+<section class="stage" aria-label="Roda acak">
+  <div class="wheelcol">
+    <div class="wheelbox">
+      <div class="pointer" aria-hidden="true"></div>
+      <canvas id="wheel" role="img" aria-label="Roda berisi ide pekerjaan. Tekan tombol Putar untuk memilih satu."></canvas>
+    </div>
+    <button class="btn" id="spin" type="button">Putar rodanya</button>
+    <div class="row" style="width:100%;justify-content:center">
+      <button class="btn ghost small" id="reset" type="button" hidden>Kembalikan semua ide ke roda</button>
+    </div>
+  </div>
+  <div id="result" aria-live="polite"></div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:14px" aria-labelledby="daftar">
+  <div class="row"><h2 id="daftar">Daftar mau coba</h2></div>
+  <div class="list" id="saved"></div>
+  <p class="note">Daftar dan ide yang kamu singkirkan tersimpan di browser ini saja.</p>
+  <details class="all"><summary>Lihat semua ide di roda</summary><ul id="all"></ul></details>
+</section>
+
+</div>
+
+<script>
+(function(){
+  var ITEMS=[
+    {id:"guide",short:"Pemandu wisata lokal",name:"Pemandu wisata lokal atau city walk",vibe:"Cocok kalau kamu suka bercerita dan berjalan kaki.",
+      ch:"Pilih satu jalan atau kawasan di kotamu, cari 5 fakta menarik, lalu ajak satu teman berjalan 30 menit sambil kamu ceritakan.",
+      steps:["Pilih tema yang sempit, misalnya bangunan tua atau kuliner pagi.","Uji ke 2–3 teman dan minta masukan jujur.","Tawarkan sesi kecil berbayar atau gabung komunitas wisata lokal."],
+      need:"Sepatu nyaman, riset kecil, dan keberanian bicara di depan orang.",warn:"Kalau ingin jadi pemandu untuk wisatawan secara resmi, cek aturan dan sertifikasi di daerahmu."},
+    {id:"trivia",short:"Host trivia / game master",name:"Host trivia atau game master",vibe:"Cocok kalau kamu suka bikin suasana ramai dan kompetitif.",
+      ch:"Tulis 10 pertanyaan trivia bertema satu topik yang kamu suka, lalu mainkan dengan 3–4 teman.",
+      steps:["Susun pertanyaan dari mudah sampai sulit.","Tanya kafe yang sepi di hari tertentu apakah mau mengadakan acara mingguan.","Siapkan kertas skor, hadiah kecil, dan aturan yang jelas."],
+      need:"Kumpulan pertanyaan, suara yang jelas, dan sedikit kepercayaan diri."},
+    {id:"mc",short:"MC / pengisi suara",name:"MC atau pengisi suara iklan",vibe:"Cocok kalau kamu suka suaramu sendiri dan tampil di depan umum.",
+      ch:"Rekam dirimu membaca naskah iklan 30 detik tiga kali dengan nada berbeda, lalu dengarkan dan pilih yang terbaik.",
+      steps:["Latih artikulasi dan jeda napas.","Tawarkan diri jadi MC acara teman atau kampus.","Buat contoh suara 1 menit yang bisa kamu kirim ke klien."],
+      need:"HP dengan mikrofon yang cukup baik dan ruangan tenang."},
+    {id:"barista",short:"Barista / mocktail",name:"Barista atau pembuat mocktail",vibe:"Cocok kalau kamu suka bekerja cepat dan bertemu banyak orang.",
+      ch:"Pelajari satu resep minuman, kopi susu atau mocktail, lalu buat tiga kali sampai rasanya konsisten.",
+      steps:["Ikut kelas singkat atau tonton demo teknik dasar.","Tanya kafe lokal soal kerja paruh waktu di akhir pekan.","Latih kecepatan dan kebersihan area kerja."],
+      need:"Peralatan dasar dan kesiapan berdiri lama."},
+    {id:"food",short:"Jualan makanan PO",name:"Jualan makanan pre-order",vibe:"Cocok kalau kamu suka dapur dan menghitung untung.",
+      ch:"Buat satu menu andalan untuk 5 teman, lalu minta mereka memberi nilai dan masukan.",
+      steps:["Hitung biaya bahan per porsi dan tentukan harga.","Buka pre-order lewat status WhatsApp.","Catat pesanan dan keuntungan di spreadsheet."],
+      need:"Satu resep andalan dan wadah kemasan sederhana.",warn:"Untuk makanan yang dijual, jaga kebersihan dan tulis bahan, terutama yang memicu alergi."},
+    {id:"florist",short:"Florist / hampers",name:"Florist atau pembuat hampers",vibe:"Cocok kalau kamu suka merangkai dan memberi kejutan.",
+      ch:"Rangkai satu buket kecil dari bunga pasar dan foto hasilnya.",
+      steps:["Pelajari dasar teknik rangkai dan perawatan bunga.","Beli bunga dari pasar grosir untuk menekan biaya.","Tawarkan hampers di momen musiman, misalnya wisuda dan hari raya."],
+      need:"Gunting, pita, kertas pembungkus, dan modal stok kecil.",warn:"Bunga cepat layu. Hitung stok dengan hati-hati supaya tidak rugi."},
+    {id:"pet",short:"Pet sitter / dog walker",name:"Pet sitter atau dog walker",vibe:"Cocok kalau kamu sayang hewan dan suka jalan kaki.",
+      ch:"Tanya satu tetangga atau teman apakah kamu boleh menjaga atau mengajak jalan hewan peliharaannya akhir pekan ini.",
+      steps:["Pelajari dasar perawatan dan tanda hewan sakit.","Mulai dari hewan milik orang yang kamu kenal.","Minta ulasan tertulis dari pemilik untuk dipakai promosi."],
+      need:"Waktu luang di jam pasti dan kesabaran.",warn:"Simpan kontak darurat pemilik dan dokter hewan sebelum menjaga hewan siapa pun."},
+    {id:"crew",short:"Kru festival",name:"Kru festival atau acara musiman",vibe:"Cocok kalau kamu suka keramaian dan kerja dalam tim.",
+      ch:"Cari 3 acara atau festival di kotamu bulan depan dan lihat apakah mereka membuka relawan atau kru.",
+      steps:["Ikuti akun media sosial penyelenggaranya.","Kirim pesan singkat berisi shift yang bisa kamu ambil.","Datang tepat waktu dan bawa kontak yang bisa dihubungi."],
+      need:"Fisik yang siap dan kemauan mengikuti arahan."},
+    {id:"extra",short:"Figuran / kru film",name:"Figuran atau kru produksi film dan iklan",vibe:"Cocok kalau kamu penasaran dengan balik layar.",
+      ch:"Cari satu grup casting figuran di kotamu dan baca aturan serta cara kerjanya.",
+      steps:["Siapkan foto diri dan data dasar.","Lamar hanya ke yang penyelenggaranya jelas.","Datang dengan perlengkapan lengkap dan siap menunggu lama."],
+      need:"Waktu fleksibel, kesabaran, dan fisik yang tahan menunggu.",warn:"Jangan bayar biaya pendaftaran di muka. Itu tanda penipuan yang umum."},
+    {id:"bipa",short:"Guru BIPA online",name:"Pengajar bahasa Indonesia untuk orang asing (BIPA) online",vibe:"Cocok kalau kamu suka mengobrol dan mengajar orang dari negara lain.",
+      ch:"Tulis rencana satu pelajaran 30 menit untuk pemula: salam, angka, dan memesan makanan.",
+      steps:["Lihat cara kerja platform kelas bahasa dan syaratnya.","Latih dengan teman memakai bahasa Inggris sederhana.","Buat profil pengajar yang jelas, lengkap dengan jadwal."],
+      need:"Bahasa Inggris dasar dan koneksi internet stabil."},
+    {id:"gametest",short:"Game tester",name:"Game tester",vibe:"Cocok kalau kamu suka main dan teliti memperhatikan hal janggal.",
+      ch:"Mainkan satu game 30 menit dan tulis 3 hal yang aneh atau rusak, lengkap dengan langkah mengulanginya.",
+      steps:["Biasakan menulis bug: langkah, hasil yang diharapkan, hasil yang terjadi.","Cari studio game lokal atau program uji coba terbuka.","Ikuti komunitas tester supaya tahu peluangnya."],
+      need:"Perangkat untuk bermain dan ketelitian. Ini juga melatih cara berpikir yang berguna untuk calon engineer."},
+    {id:"mystery",short:"Mystery shopper",name:"Mystery shopper",vibe:"Cocok kalau kamu suka mengamati pelayanan dan menulis laporan.",
+      ch:"Tulis checklist pelayanan untuk satu kafe langgananmu: sambutan, kebersihan, kecepatan, dan kesesuaian pesanan. Untuk latihan, belum perlu dibayar.",
+      steps:["Cari tahu platform atau agensi yang dipercaya.","Baca syarat pembayaran dan jadwal tugasnya.","Kerjakan tugas kecil dulu sebelum menerima banyak."],
+      need:"Mata yang teliti dan kemampuan menulis laporan singkat.",warn:"Jangan bayar biaya pendaftaran, dan jangan menerima transfer yang meminta kamu mengirim uang kembali. Itu modus penipuan."}
+  ];
+  var KEY="roda-acak-kerja", state={out:[],saved:[],done:[]};
+  try{var s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&s.out&&s.saved&&s.done) state=s}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+  function $(id){return document.getElementById(id)}
+  function esc(t){var d=document.createElement("div");d.textContent=t;return d.innerHTML}
+  function byId(id){return ITEMS.filter(function(i){return i.id===id})[0]}
+  function active(){return ITEMS.filter(function(i){return state.out.indexOf(i.id)<0})}
+  var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var cv=$("wheel"),ctx=cv.getContext("2d"),rot=0,spinning=false,current=null;
+  function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+  function size(){
+    var w=cv.clientWidth||320,d=window.devicePixelRatio||1;
+    if(cv.width!==Math.round(w*d)){cv.width=Math.round(w*d);cv.height=Math.round(w*d)}
+    draw();
+  }
+  function draw(){
+    var D=cv.width,R=D/2;ctx.clearRect(0,0,D,D);
+    var list=active(),n=list.length;if(!n)return;
+    var seg=2*Math.PI/n,cols=[css("--s1"),css("--s2"),css("--s3"),css("--s4"),css("--s5")],ink=css("--seg-ink"),edge=css("--surface");
+    ctx.save();ctx.translate(R,R);
+    for(var i=0;i<n;i++){
+      ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,R*0.96,rot+i*seg,rot+(i+1)*seg);ctx.closePath();
+      ctx.fillStyle=cols[i%cols.length];ctx.fill();ctx.strokeStyle=edge;ctx.lineWidth=D*0.006;ctx.stroke();
+      ctx.save();ctx.rotate(rot+(i+0.5)*seg);ctx.textAlign="right";ctx.textBaseline="middle";ctx.fillStyle=ink;
+      var fs=D*0.042,fam=css("--display")||"sans-serif";
+      ctx.font="600 "+fs+"px "+fam;
+      while(ctx.measureText(list[i].short).width>R*0.66&&fs>8){fs-=1;ctx.font="600 "+fs+"px "+fam}
+      ctx.fillText(list[i].short,R*0.9,0);ctx.restore();
+    }
+    ctx.beginPath();ctx.arc(0,0,R*0.1,0,2*Math.PI);ctx.fillStyle=edge;ctx.fill();
+    ctx.lineWidth=D*0.008;ctx.strokeStyle=css("--line");ctx.stroke();
+    ctx.restore();
+  }
+  function mod(a,m){return ((a%m)+m)%m}
+  function pick(){
+    var list=active(),seg=2*Math.PI/list.length;
+    return list[Math.floor(mod(-Math.PI/2-rot,2*Math.PI)/seg)];
+  }
+  function spin(){
+    if(spinning||active().length<2)return;
+    spinning=true;$("spin").disabled=true;
+    var t0=performance.now(),r0=rot,total=(5+Math.random()*3)*2*Math.PI+Math.random()*2*Math.PI,dur=reduce?0:4200;
+    function step(t){
+      var p=dur?Math.min(1,(t-t0)/dur):1,e=1-Math.pow(1-p,3);
+      rot=r0+total*e;draw();
+      if(p<1)requestAnimationFrame(step);else{spinning=false;$("spin").disabled=false;show(pick())}
+    }
+    requestAnimationFrame(step);
+  }
+  $("spin").addEventListener("click",spin);
+
+  function placeholder(){
+    $("result").innerHTML='<div class="card placeholder"><p class="eyebrow">Hasil</p><h2>Belum diputar</h2><p class="muted">Tekan tombol di bawah roda. Ide yang keluar akan muncul di sini, lengkap dengan tantangan kecil untuk minggu ini dan cara memulainya.</p></div>';
+  }
+  function show(it){
+    current=it;
+    var saved=state.saved.indexOf(it.id)>=0;
+    var h='<div class="card"><p class="eyebrow">Hasil putaran</p><h2>'+esc(it.name)+'</h2><p class="vibe">'+esc(it.vibe)+'</p>'+
+      '<div class="challenge"><b>Tantangan minggu ini</b>'+esc(it.ch)+'</div>'+
+      '<dl><div><dt>Cara mulai</dt><dd><ol>'+it.steps.map(function(x){return '<li>'+esc(x)+'</li>'}).join("")+'</ol></dd></div>'+
+      '<div><dt>Modal</dt><dd>'+esc(it.need)+'</dd></div></dl>'+
+      (it.warn?'<p class="warn">'+esc(it.warn)+'</p>':'')+
+      '<div class="actions"><button class="btn small" id="aSave" type="button"'+(saved?' disabled':'')+'>'+(saved?'Sudah di daftar':'Mau coba ini')+'</button><button class="btn ghost small" id="aOut" type="button">Bukan aku, singkirkan</button></div></div>';
+    $("result").innerHTML=h;
+    $("aSave").addEventListener("click",function(){
+      if(state.saved.indexOf(it.id)<0){state.saved.push(it.id);save();renderSaved();show(it)}
+    });
+    $("aOut").addEventListener("click",function(){
+      if(active().length<=2){return}
+      state.out.push(it.id);
+      var k=state.saved.indexOf(it.id);if(k>=0){state.saved.splice(k,1)}
+      save();current=null;placeholder();renderAll();draw();
+    });
+  }
+  function renderSaved(){
+    var box=$("saved");
+    if(!state.saved.length){box.innerHTML='<div class="empty">Belum ada. Putar rodanya, lalu tekan "Mau coba ini" pada ide yang bikin penasaran.</div>';return}
+    box.innerHTML=state.saved.map(function(id){
+      var it=byId(id),d=state.done.indexOf(id)>=0;
+      return '<div class="item"><label><input type="checkbox" data-id="'+id+'"'+(d?' checked':'')+'><span>'+esc(it.name)+'</span></label><button class="x" type="button" data-rm="'+id+'" aria-label="Hapus '+esc(it.name)+' dari daftar">Hapus</button></div>';
+    }).join("");
+  }
+  $("saved").addEventListener("change",function(e){
+    var id=e.target.getAttribute("data-id");if(!id)return;
+    var k=state.done.indexOf(id);
+    if(e.target.checked){if(k<0)state.done.push(id)}else if(k>=0){state.done.splice(k,1)}
+    save();
+  });
+  $("saved").addEventListener("click",function(e){
+    var id=e.target.getAttribute("data-rm");if(!id)return;
+    state.saved=state.saved.filter(function(x){return x!==id});
+    state.done=state.done.filter(function(x){return x!==id});
+    save();renderSaved();if(current&&current.id===id)show(current);
+  });
+  function renderAll(){
+    $("all").innerHTML=ITEMS.map(function(i){
+      var out=state.out.indexOf(i.id)>=0;
+      return '<li'+(out?' class="muted"':'')+'>'+esc(i.name)+(out?' (disingkirkan)':'')+'</li>';
+    }).join("");
+    $("reset").hidden=!state.out.length;
+  }
+  $("reset").addEventListener("click",function(){state.out=[];save();renderAll();draw()});
+
+  placeholder();renderSaved();renderAll();size();
+  if(window.ResizeObserver)new ResizeObserver(size).observe(cv);else window.addEventListener("resize",size);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(draw);
+  if(window.matchMedia)matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw);
+  new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+})();
+</script>
+
+</body>
+</html>

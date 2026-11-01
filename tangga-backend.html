@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tangga Backend</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: tangga vertikal tujuh anak tangga (accordion), perencana waktu di atas, alat lawan malas di bawah. */
+:root{
+  --bg:#F3F1FA; --surface:#FFFFFF; --ink:#1E1B3A; --muted:#5B5878; --line:#D9D5EC; --tint:#E7E3F6;
+  --accent:#C2186B; --accent-soft:#F8DCEA; --on-accent:#FFFFFF; --ok:#1F7A4D; --ok-soft:#D6EEE0;
+  --display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14122A; --surface:#1E1B3E; --ink:#EEEBFA; --muted:#A7A3C8; --line:#34305E; --tint:#27234D;
+    --accent:#FF6FB1; --accent-soft:#4A1F39; --on-accent:#14122A; --ok:#5DD39E; --ok-soft:#1B3B30; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14122A; --surface:#1E1B3E; --ink:#EEEBFA; --muted:#A7A3C8; --line:#34305E; --tint:#27234D;
+  --accent:#FF6FB1; --accent-soft:#4A1F39; --on-accent:#14122A; --ok:#5DD39E; --ok-soft:#1B3B30; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--body); font-size:17px; line-height:1.6;
+  padding-block:36px 80px;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:820px;margin-inline:auto;display:flex;flex-direction:column;gap:64px}
+h1,h2,h3{font-family:var(--display);font-weight:600;line-height:1.12;margin:0;text-wrap:balance}
+h1{font-size:clamp(2.2rem,7vw,3.6rem)}
+h2{font-size:clamp(1.5rem,4.4vw,2.1rem)}
+h3{font-size:1.1rem}
+p{margin:0}
+section{display:flex;flex-direction:column;gap:20px;min-width:0}
+.eyebrow{font-weight:700;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.lede{max-width:60ch;font-size:1.1rem}
+.prose{max-width:64ch}
+.muted{color:var(--muted)}
+.note{font-size:.88rem;color:var(--muted)}
+mark{background:var(--accent);color:var(--on-accent);padding:0 .22em;border-radius:6px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;display:grid;gap:18px;min-width:0}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.ctl{display:grid;gap:6px;min-width:0}
+.ctl label{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:.95rem}
+.ctl output{font-family:var(--mono);color:var(--accent);font-weight:500}
+input[type=range]{width:100%;accent-color:var(--accent)}
+select{font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);width:100%;min-width:0}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.num{border-top:3px solid var(--accent);padding-top:10px}
+.num .n{font-family:var(--display);font-size:1.9rem;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.num .t{font-size:.88rem;color:var(--muted);margin-top:4px}
+.btn{font:inherit;font-family:var(--display);font-weight:600;padding:11px 24px;border-radius:999px;border:0;background:var(--accent);color:var(--on-accent);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--line);padding:9px 18px}
+.btn.ghost:hover{border-color:var(--ink)}
+
+/* Tangga */
+.ladder{display:grid;gap:10px}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:14px;min-width:0}
+.step summary{list-style:none;cursor:pointer;padding:14px 16px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 14px;align-items:center}
+.step summary::-webkit-details-marker{display:none}
+.lvl{width:42px;height:42px;border-radius:50%;background:var(--tint);display:grid;place-items:center;font-family:var(--display);font-weight:600;font-size:1.2rem}
+.step.full .lvl{background:var(--ok);color:var(--on-accent)}
+.step summary h3{font-size:1.1rem}
+.step summary .meta{font-size:.82rem;color:var(--muted)}
+.step summary .pr{font-family:var(--mono);font-size:.82rem;color:var(--muted);white-space:nowrap}
+.sbar{grid-column:1/-1;height:6px;background:var(--tint);border-radius:3px;overflow:hidden}
+.sbar>div{height:100%;background:var(--ok);width:0}
+.step .body{padding:0 16px 18px;display:grid;gap:14px}
+.checks{display:grid;gap:6px}
+.check{display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:.98rem}
+.check input{margin-top:6px;width:16px;height:16px;accent-color:var(--ok);flex:none}
+.check input:checked+span{color:var(--muted);text-decoration:line-through}
+.proof{background:var(--accent-soft);border-radius:12px;padding:12px 14px;font-size:.95rem}
+.proof b{font-family:var(--display);font-weight:600;display:block;margin-bottom:2px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-family:var(--mono);font-size:.74rem;padding:3px 10px;border-radius:999px;background:var(--tint)}
+
+/* Lawan malas */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;align-items:start}
+.opts{display:grid;gap:8px;border:0;margin:0;padding:0}
+.opts legend{font-weight:700;margin-bottom:6px;padding:0}
+.opt{display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:.95rem;padding:8px 10px;border:1px solid var(--line);border-radius:10px}
+.opt input{margin-top:5px;accent-color:var(--accent)}
+.opt:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.today{background:var(--accent-soft);border-radius:12px;padding:14px 16px}
+.today b{font-family:var(--display);font-weight:600}
+.timer{font-family:var(--mono);font-size:2.8rem;font-weight:500;font-variant-numeric:tabular-nums;line-height:1}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cal .dh{font-family:var(--mono);font-size:.7rem;color:var(--muted);text-align:center}
+.cal button{font:inherit;font-family:var(--mono);font-size:.78rem;aspect-ratio:1;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer;padding:0;min-width:0}
+.cal button[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:var(--on-accent);font-weight:500}
+.cal button.today{outline:2px solid var(--accent);outline-offset:1px}
+ul.tips{margin:0;padding-left:1.2em;display:grid;gap:6px}
+@media (prefers-reduced-motion:no-preference){.sbar>div{transition:width .25s}}
+html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header style="display:flex;flex-direction:column;gap:14px">
+  <p class="eyebrow">Jalur teknis menuju backend engineer</p>
+  <h1>Tujuh anak tangga dari nol sampai <mark>siap dilamar</mark>.</h1>
+  <p class="lede">Setiap tahap berisi hal yang perlu kamu bisa, satu bukti bahwa kamu sudah naik, dan perkiraan jamnya. Di bawahnya ada alat untuk melawan malas, karena yang paling sulit biasanya konsisten, bukan kurang pintar.</p>
+</header>
+
+<section aria-labelledby="rencana">
+  <div><p class="eyebrow">Perencana waktu</p><h2 id="rencana">Kapan kira-kira sampai target?</h2></div>
+  <div class="box">
+    <div class="controls">
+      <div class="ctl"><label for="hpw">Jam belajar per minggu <output id="oHpw">8</output></label><input id="hpw" type="range" min="3" max="25" step="1" value="8"></div>
+      <div class="ctl"><label for="target">Targetku</label>
+        <select id="target">
+          <option value="3">Tahap 3: paham database</option>
+          <option value="4">Tahap 4: bisa membuat API</option>
+          <option value="5" selected>Tahap 5: siap melamar junior</option>
+          <option value="6">Tahap 6: semua tahap</option>
+        </select></div>
+    </div>
+    <div class="sum">
+      <div class="num"><div class="n" id="pJam">435</div><div class="t">jam tersisa sampai target</div></div>
+      <div class="num"><div class="n" id="pMinggu">54</div><div class="t">minggu kalau konsisten</div></div>
+      <div class="num"><div class="n" id="pTgl">Nov 2027</div><div class="t">perkiraan selesai</div></div>
+    </div>
+    <p class="note">Jam per tahap adalah perkiraan kasarku untuk pemula, bukan data resmi, dan bisa lebih cepat atau lebih lama. Ceklis di bawah mengurangi jam tersisa. Ini belajar mandiri di luar jam kuliah, dan sebagian materinya beririsan dengan mata kuliah UT.</p>
+  </div>
+</section>
+
+<section aria-labelledby="tangga">
+  <div><p class="eyebrow">Tahapan</p><h2 id="tangga">Apa saja yang harus bisa</h2></div>
+  <div class="prose"><p class="muted">Urutannya penting karena tiap tahap bertumpu pada yang sebelumnya. Centang yang sudah kamu kuasai. Daftar keterampilannya selaras dengan yang sering dicari di lowongan: satu bahasa server, SQL, REST API dan autentikasi, serta Docker dan cloud dasar.</p></div>
+  <div class="box" style="gap:10px">
+    <div class="row" style="justify-content:space-between"><span id="allText" class="note"></span></div>
+    <div class="sbar" id="allBar" style="height:10px;border-radius:5px"><div id="allFill"></div></div>
+  </div>
+  <div class="ladder" id="ladder"></div>
+</section>
+
+<section aria-labelledby="malas">
+  <div><p class="eyebrow">Lawan malas</p><h2 id="malas">Cara tetap jalan di hari yang berat</h2></div>
+  <div class="prose"><p class="muted">Malas biasanya salah satu dari tiga hal: tugasnya terlalu besar, kamu capek, atau langkah berikutnya tidak jelas. Alat di bawah menjawab ketiganya.</p></div>
+  <div class="grid2">
+    <div class="box">
+      <fieldset class="opts" id="energy"><legend>Energimu hari ini?</legend>
+        <label class="opt"><input type="radio" name="e" value="1"><span>Habis tenaga</span></label>
+        <label class="opt"><input type="radio" name="e" value="2"><span>Lemas</span></label>
+        <label class="opt"><input type="radio" name="e" value="3" checked><span>Biasa saja</span></label>
+        <label class="opt"><input type="radio" name="e" value="4"><span>Lumayan segar</span></label>
+        <label class="opt"><input type="radio" name="e" value="5"><span>Bertenaga</span></label>
+      </fieldset>
+      <div class="today" aria-live="polite"><b>Tugas hari ini</b><p id="todayTask"></p></div>
+      <p class="note">Kalau yang kamu rasakan malas dan bukan capek, mulai saja dengan timer 10 menit di sebelah.</p>
+    </div>
+    <div class="box">
+      <div class="ctl"><label for="tLen">Aturan 10 menit</label>
+        <select id="tLen"><option value="10" selected>10 menit</option><option value="25">25 menit</option></select></div>
+      <div class="timer" id="tShow" role="timer" aria-live="off">10:00</div>
+      <div class="row"><button class="btn" id="tGo" type="button">Mulai</button><button class="btn ghost" id="tReset" type="button">Ulang</button></div>
+      <p id="tMsg" class="note" role="status">Kerjakan hanya selama timer berjalan. Setelah selesai, kamu boleh berhenti. Biasanya memulai adalah bagian tersulit.</p>
+    </div>
+  </div>
+  <div class="box">
+    <div class="row" style="justify-content:space-between"><h3>Kalender belajar, 5 minggu terakhir</h3><span class="num" style="border:0;padding:0"><span class="n" id="stk" style="font-size:1.4rem"></span></span></div>
+    <div class="cal" id="cal"></div>
+    <p class="note">Tekan tanggal untuk menandai hari kamu belajar. Satu hari bolong tidak masalah, usahakan jangan dua hari berturut-turut. Data tersimpan di browser ini saja.</p>
+  </div>
+  <div class="box">
+    <h3>Kalau macet</h3>
+    <ul class="tips">
+      <li>Baca pesan error dari atas ke bawah, lalu tempel ke pencarian.</li>
+      <li>Coba sendiri sekitar 20 menit. Setelah itu tulis pertanyaan lengkap: apa yang kamu coba, apa yang kamu harapkan, dan apa yang terjadi.</li>
+      <li>Kecilkan masalahnya sampai bisa dihasilkan lagi dalam 10 baris kode.</li>
+      <li>Istirahat 5 menit dan jalan sebentar. Jawabannya sering muncul saat kamu berhenti menatap layar.</li>
+      <li>Catat solusinya di buku belajarmu supaya tidak tersandung hal yang sama.</li>
+    </ul>
+  </div>
+</section>
+
+</div>
+
+<script>
+(function(){
+  function $(id){return document.getElementById(id)}
+  function esc(t){var d=document.createElement("div");d.textContent=t;return d.innerHTML}
+  var BLN=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+  var STAGES=[
+    {t:"Siapkan alat",h:15,ut:[],sk:["Terminal: berpindah folder, membuat dan menghapus berkas","Git: commit, branch, merge, dan pull request","Editor kode (misalnya VS Code) dan ekstensi dasarnya","Membaca pesan error dan mencari jawabannya"],proof:"Repo pertamamu ada di GitHub dengan minimal 5 commit yang pesannya jelas.",proj:"Repo catatan belajar"},
+    {t:"Dasar pemrograman",h:80,ut:["Algoritma dan Pemrograman","Struktur Data"],sk:["Variabel, kondisi, perulangan, dan fungsi di satu bahasa (Python, JavaScript, Go, atau Java)","Struktur data: list, dictionary/map, set, stack, dan queue","Membaca dan menulis berkas serta menangani error","Algoritma dasar: pencarian, pengurutan, dan kompleksitas Big-O dasar"],proof:"Selesai 30 soal latihan dan satu program baris perintah yang berguna, misalnya pencatat pengeluaran.",proj:"Program pencatat pengeluaran"},
+    {t:"Web dan HTTP",h:30,ut:["Jaringan Komputer","Pemrograman Berbasis Web"],sk:["Apa yang terjadi saat membuka sebuah situs: DNS, TCP, HTTP","Request dan response, status code, dan header","JSON dan prinsip REST","Memanggil API dengan Postman atau curl, lalu dari kode"],proof:"Bisa menjelaskan apa yang terjadi saat membuka sebuah situs, dan memanggil API publik dari programmu.",proj:"Program yang menampilkan data dari API publik"},
+    {t:"Database",h:50,ut:["Basis Data"],sk:["SQL: SELECT, JOIN, GROUP BY, dan subquery","Merancang tabel, relasi, dan normalisasi","Index dan alasan kueri bisa lambat","Transaksi dan migrasi skema","Gambaran NoSQL (misalnya MongoDB atau Redis)"],proof:"Merancang skema 5 tabel dan menulis kueri untuk 10 pertanyaan bisnis.",proj:"Skema database untuk sistem arsip surat"},
+    {t:"Membangun API",h:100,ut:["Rekayasa Perangkat Lunak","Pemrograman Berbasis Web"],sk:["Satu framework (Express, FastAPI, Spring, atau Gin) dengan operasi tambah, baca, ubah, hapus","Validasi input dan penanganan error","Autentikasi (JWT atau OAuth2) dan otorisasi","Pagination, filter, dan ORM","Tes unit dan tes integrasi","Dokumentasi API (OpenAPI)"],proof:"API lengkap dengan login, database, tes, dan dokumentasi.",proj:"Aplikasi arsip surat dan tiket klien"},
+    {t:"Siap produksi",h:60,ut:["Praktik Kerja Lapangan"],sk:["Docker: membuat image dan menjalankan container","Deploy ke layanan cloud","CI/CD dasar dengan GitHub Actions atau sejenisnya","Logging, konfigurasi lingkungan, dan menyimpan rahasia dengan aman","Keamanan dasar: hashing password, SQL injection, dan OWASP Top 10","Backup dan pemulihan dasar"],proof:"Aplikasimu hidup di internet dengan URL, dan otomatis ter-deploy dari GitHub.",proj:"Deploy proyek API ke cloud dengan README rapi"},
+    {t:"Naik kelas",h:100,ut:[],sk:["Cache (misalnya Redis) dan kapan memakainya","Antrean pesan dan pemrosesan di latar belakang","Konkurensi dan performa","Desain sistem sederhana dan trade-off-nya","Observability: metrik, log, dan tracing","Dasar microservices dan Kubernetes"],proof:"Bisa menjelaskan trade-off desain sistem sederhana dan memperbaiki satu bottleneck nyata.",proj:"Menambah cache dan antrean ke proyekmu"}
+  ];
+  var KEY="tangga-backend-state",S={c:{},d:[]};
+  try{var s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.c&&s.d)S=s}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+  /* ----- Tangga ----- */
+  var html="";
+  STAGES.forEach(function(st,i){
+    html+='<details class="step" data-i="'+i+'"'+(i===0?' open':'')+'><summary><span class="lvl">'+i+'</span><span><h3>'+esc(st.t)+'</h3><span class="meta">±'+st.h+' jam'+(st.ut.length?' · selaras dengan UT':'')+'</span></span><span class="pr" id="pr'+i+'"></span><div class="sbar"><div id="sb'+i+'"></div></div></summary><div class="body"><div class="checks">';
+    st.sk.forEach(function(k,j){
+      var id="s"+i+"_"+j;
+      html+='<label class="check" for="'+id+'"><input type="checkbox" id="'+id+'"'+(S.c[id]?' checked':'')+'><span>'+esc(k)+'</span></label>';
+    });
+    html+='</div><div class="proof"><b>Bukti kamu sudah naik tahap</b>'+esc(st.proof)+'</div><p class="note">Proyek penanda: '+esc(st.proj)+'</p>';
+    if(st.ut.length)html+='<div class="tags" aria-label="Mata kuliah UT yang selaras">'+st.ut.map(function(u){return '<span class="tag">'+esc(u)+'</span>'}).join("")+'</div>';
+    html+='</div></details>';
+  });
+  $("ladder").innerHTML=html;
+  function doneFrac(i){
+    var st=STAGES[i],n=0;
+    st.sk.forEach(function(k,j){if(S.c["s"+i+"_"+j])n++});
+    return {n:n,t:st.sk.length,f:n/st.sk.length};
+  }
+  function plan(){
+    var hpw=+$("hpw").value,tg=+$("target").value,rem=0;
+    $("oHpw").textContent=hpw;
+    for(var i=0;i<=tg;i++)rem+=STAGES[i].h*(1-doneFrac(i).f);
+    rem=Math.round(rem);
+    var wk=Math.ceil(rem/hpw),d=new Date();d.setDate(d.getDate()+wk*7);
+    $("pJam").textContent=rem.toLocaleString("id-ID");
+    $("pMinggu").textContent=wk.toLocaleString("id-ID");
+    $("pTgl").textContent=rem===0?"Sudah":BLN[d.getMonth()]+" "+d.getFullYear();
+  }
+  function progress(){
+    var tot=0,done=0;
+    STAGES.forEach(function(st,i){
+      var r=doneFrac(i);tot+=r.t;done+=r.n;
+      $("pr"+i).textContent=r.n+"/"+r.t;
+      $("sb"+i).style.width=Math.round(r.f*100)+"%";
+      document.querySelector('.step[data-i="'+i+'"]').classList.toggle("full",r.n===r.t);
+    });
+    var p=Math.round(done/tot*100);
+    $("allFill").style.width=p+"%";
+    $("allText").textContent=done+" dari "+tot+" keterampilan dikuasai ("+p+"%)";
+    plan();
+  }
+  $("ladder").addEventListener("change",function(e){
+    if(e.target.type!=="checkbox")return;
+    if(e.target.checked)S.c[e.target.id]=1;else delete S.c[e.target.id];
+    save();progress();
+  });
+  $("hpw").addEventListener("input",plan);
+  $("target").addEventListener("change",plan);
+  progress();
+
+  /* ----- Tugas sesuai energi ----- */
+  var TASKS={
+    1:"5 menit saja. Baca satu halaman dokumentasi atau tonton satu video pendek, lalu tulis satu kalimat tentang apa yang kamu pelajari.",
+    2:"15 menit. Kerjakan satu soal SQL atau satu soal algoritma yang mudah.",
+    3:"30 menit. Tambahkan satu fitur kecil di proyekmu, misalnya satu endpoint baru.",
+    4:"60 sampai 90 menit. Kerjakan bagian proyek yang kamu tunda, dengan timer berjalan.",
+    5:"Waktunya hal sulit. Selesaikan bug yang membandel, tulis tes otomatis, atau pelajari konsep baru seperti autentikasi."
+  };
+  function energy(){
+    var v=document.querySelector('input[name="e"]:checked').value;
+    $("todayTask").textContent=TASKS[v];
+  }
+  $("energy").addEventListener("change",energy);energy();
+
+  /* ----- Timer ----- */
+  var tId=null,left=600;
+  function fmt(s){var m=Math.floor(s/60),r=s%60;return (m<10?"0":"")+m+":"+(r<10?"0":"")+r}
+  function setLen(){clearInterval(tId);tId=null;left=+$("tLen").value*60;$("tShow").textContent=fmt(left);$("tGo").textContent="Mulai";$("tMsg").textContent="Kerjakan hanya selama timer berjalan. Setelah selesai, kamu boleh berhenti. Biasanya memulai adalah bagian tersulit."}
+  $("tLen").addEventListener("change",setLen);
+  $("tReset").addEventListener("click",setLen);
+  $("tGo").addEventListener("click",function(){
+    if(tId){clearInterval(tId);tId=null;$("tGo").textContent="Lanjut";return}
+    if(left<=0)setLen();
+    $("tGo").textContent="Jeda";$("tMsg").textContent="Fokus ke satu hal saja.";
+    tId=setInterval(function(){
+      left--;$("tShow").textContent=fmt(left);
+      if(left<=0){
+        clearInterval(tId);tId=null;$("tGo").textContent="Mulai";
+        $("tMsg").textContent="Selesai. Kamu sudah mulai, dan itu bagian tersulit. Mau lanjut sekali lagi? Tandai hari ini di kalender.";
+        markToday();
+      }
+    },1000);
+  });
+
+  /* ----- Kalender ----- */
+  function key(d){var m=d.getMonth()+1,dd=d.getDate();return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(dd<10?"0":"")+dd}
+  function markToday(){var k=key(new Date());if(S.d.indexOf(k)<0){S.d.push(k);save();cal()}}
+  function cal(){
+    var today=new Date();today.setHours(12,0,0,0);
+    var days=[];for(var i=34;i>=0;i--){var d=new Date(today);d.setDate(d.getDate()-i);days.push(d)}
+    var lead=(days[0].getDay()+6)%7; /* Senin = 0 */
+    var h="";["Sen","Sel","Rab","Kam","Jum","Sab","Min"].forEach(function(n){h+='<div class="dh">'+n+'</div>'});
+    for(var j=0;j<lead;j++)h+='<div></div>';
+    days.forEach(function(d){
+      var k=key(d),on=S.d.indexOf(k)>=0,isT=k===key(today);
+      h+='<button type="button" data-k="'+k+'" aria-pressed="'+on+'" aria-label="'+d.getDate()+' '+BLN[d.getMonth()]+(isT?' (hari ini)':'')+'"'+(isT?' class="today"':'')+'>'+d.getDate()+'</button>';
+    });
+    $("cal").innerHTML=h;
+    var st=0,c=new Date(today);
+    if(S.d.indexOf(key(c))<0)c.setDate(c.getDate()-1);
+    while(S.d.indexOf(key(c))>=0){st++;c.setDate(c.getDate()-1)}
+    var tot=days.filter(function(d){return S.d.indexOf(key(d))>=0}).length;
+    $("stk").textContent="Beruntun "+st+" hari · "+tot+" hari dari 35";
+  }
+  $("cal").addEventListener("click",function(e){
+    var b=e.target.closest("button");if(!b)return;
+    var k=b.getAttribute("data-k"),i=S.d.indexOf(k);
+    if(i>=0)S.d.splice(i,1);else S.d.push(k);
+    save();cal();
+  });
+  cal();
+})();
+</script>
+
+</body>
+</html>

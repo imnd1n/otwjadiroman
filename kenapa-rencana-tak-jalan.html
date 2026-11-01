@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kenapa Rencana Tak Jalan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: satu kolom bacaan, dengan "jurang" antara rencana dan eksekusi sebagai gambar utama.
+   Warna: biru tinta (rencana/pikiran), kuning kunyit (langkah pertama), teal (eksekusi), terakota (peringatan). */
+:root{
+  --bg:#EEF1F6; --surface:#FFFFFF; --ink:#14213D; --muted:#55627C; --line:#D3D9E6;
+  --accent:#F2A100; --on-accent:#14213D; --teal:#0E7C86; --warn:#B4442B; --tint:#E3E8F2;
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"DM Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1526; --surface:#172036; --ink:#E8ECF5; --muted:#9AA6C0; --line:#2A3654;
+    --accent:#FFB81F; --on-accent:#0E1526; --teal:#4CC3CC; --warn:#F08A6B; --tint:#1F2A45; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1526; --surface:#172036; --ink:#E8ECF5; --muted:#9AA6C0; --line:#2A3654;
+  --accent:#FFB81F; --on-accent:#0E1526; --teal:#4CC3CC; --warn:#F08A6B; --tint:#1F2A45; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--body); font-size:17px; line-height:1.65;
+  padding-block:40px 72px;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:820px;margin-inline:auto;display:flex;flex-direction:column;gap:72px}
+h1,h2,h3{font-family:var(--display);line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-0.02em}
+h1{font-size:clamp(2.3rem,7vw,3.9rem);font-weight:800}
+h2{font-size:clamp(1.6rem,4.6vw,2.3rem);font-weight:800}
+h3{font-size:1.2rem;font-weight:600;letter-spacing:-0.01em}
+p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lede{font-size:1.15rem;max-width:62ch}
+.prose{max-width:64ch;display:flex;flex-direction:column;gap:14px}
+.muted{color:var(--muted)}
+section{display:flex;flex-direction:column;gap:24px;min-width:0}
+.head{display:flex;flex-direction:column;gap:10px}
+mark{background:var(--accent);color:var(--on-accent);padding:0 .25em;border-radius:3px}
+
+/* Hero gap graphic */
+.hero{display:flex;flex-direction:column;gap:28px}
+.gap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:16px}
+.row{display:flex;flex-direction:column;gap:6px}
+.row .lab{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.92rem}
+.row .lab b{font-weight:600}
+.row .lab span{font-family:var(--mono);color:var(--muted);font-size:.8rem}
+.track{height:22px;background:var(--tint);border-radius:4px;overflow:hidden}
+.fill{height:100%}
+.fill.plan{width:100%;background:repeating-linear-gradient(90deg,var(--ink) 0 14px,transparent 14px 18px);opacity:.85}
+.fill.do{width:6%;background:var(--accent)}
+.gap small{font-family:var(--mono);color:var(--muted);font-size:.75rem}
+
+/* Picker */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:.95rem;font-weight:500;padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;text-align:left}
+.chip:hover{border-color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px;display:grid;gap:18px;min-width:0}
+.panel .voice{font-family:var(--display);font-size:1.35rem;font-weight:600;line-height:1.25}
+.panel dl{margin:0;display:grid;gap:14px}
+.panel dt{font-family:var(--mono);font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.panel dd{margin:2px 0 0}
+.panel .step{background:var(--tint);border-radius:8px;padding:14px 16px}
+.panel .step dt{color:var(--teal)}
+
+/* Rows (dampak) */
+.ledger{display:grid;border-top:1px solid var(--line)}
+.ledger>div{display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr);gap:8px 24px;padding:18px 0;border-bottom:1px solid var(--line)}
+.ledger b{font-family:var(--display);font-size:1.1rem;font-weight:600}
+@media (max-width:560px){.ledger>div{grid-template-columns:1fr}}
+
+/* Simulator */
+.sim{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px;display:grid;gap:22px}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px}
+.ctl label{display:flex;justify-content:space-between;gap:8px;font-size:.92rem;font-weight:500}
+.ctl output{font-family:var(--mono);color:var(--teal);font-weight:500}
+input[type=range]{width:100%;accent-color:var(--teal)}
+.result{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.num{border-top:3px solid var(--teal);padding-top:10px}
+.num .n{font-family:var(--display);font-size:2.4rem;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.num .t{font-size:.9rem;color:var(--muted);margin-top:6px}
+.num.zero{border-top-color:var(--warn)}
+.num.zero .n{color:var(--warn)}
+.sim .note{font-size:.88rem;color:var(--muted)}
+
+/* Timeline */
+.tl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-top:2px solid var(--ink)}
+.tl>div{padding:16px 16px 0 0;position:relative;display:flex;flex-direction:column;gap:6px}
+.tl>div::before{content:"";position:absolute;top:-7px;left:0;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--ink)}
+.tl .when{font-family:var(--mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:8px}
+.tl p{font-size:.95rem;line-height:1.55}
+@media (max-width:700px){
+  .tl{grid-template-columns:1fr;border-top:0;border-left:2px solid var(--ink);margin-left:6px}
+  .tl>div{padding:0 0 22px 22px}
+  .tl>div::before{top:4px;left:-8px}
+  .tl .when{padding-top:0}
+}
+
+/* Builder */
+.builder{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px;display:grid;gap:16px}
+.field{display:grid;gap:6px}
+.field label{font-size:.9rem;font-weight:500}
+.field input{font:inherit;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%;min-width:0}
+.out{background:var(--ink);color:var(--bg);border-radius:8px;padding:16px 18px;font-family:var(--display);font-size:1.2rem;font-weight:600;line-height:1.35;overflow-wrap:anywhere}
+.btn{font:inherit;font-weight:600;padding:11px 18px;border-radius:8px;border:0;background:var(--accent);color:var(--on-accent);cursor:pointer;justify-self:start}
+.btn:hover{filter:brightness(.95)}
+.three{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
+.three div{border-top:2px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:6px}
+.care{border-left:4px solid var(--warn);padding:4px 0 4px 16px;max-width:64ch}
+footer{font-size:.85rem;color:var(--muted);max-width:64ch}
+@media (prefers-reduced-motion:no-preference){.chip{transition:background .15s,color .15s,border-color .15s}}
+html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="head">
+    <p class="eyebrow">Rencana banyak, eksekusi sedikit</p>
+    <h1>Kamu mungkin bukan malas. Kamu <mark>terjebak di depan langkah pertama</mark>.</h1>
+  </div>
+  <p class="lede">Orang yang punya banyak rencana tapi jarang mulai biasanya tidak kekurangan niat. Yang macet adalah jarak antara "aku mau" dan "aku mengerjakan sekarang". Halaman ini menjelaskan kenapa jarak itu terjadi, apa dampaknya di usia 23, dan apa yang berubah kalau kamu mulai bergerak.</p>
+  <div class="gap" role="img" aria-label="Ilustrasi: rencana di kepala penuh, langkah yang dikerjakan sangat kecil">
+    <div class="row"><div class="lab"><b>Rencana di kepala</b><span>penuh, detail, rapi</span></div><div class="track"><div class="fill plan"></div></div></div>
+    <div class="row"><div class="lab"><b>Langkah pertama yang benar-benar dikerjakan</b><span>kecil, tapi nyata</span></div><div class="track"><div class="fill do"></div></div></div>
+    <small>Ilustrasi pola, bukan hasil pengukuran.</small>
+  </div>
+</header>
+
+<section aria-labelledby="sebab">
+  <div class="head">
+    <p class="eyebrow">Penyebab</p>
+    <h2 id="sebab">Kenapa orang menunda, padahal sudah punya rencana?</h2>
+  </div>
+  <div class="prose">
+    <p>Riset tentang prokrastinasi menunjukkan bahwa menunda lebih sering soal mengelola perasaan daripada soal manajemen waktu. Tugas yang terasa membosankan, menakutkan, atau tidak jelas memicu rasa tidak enak. Otak lalu memilih jalan keluar tercepat: pindah ke sesuatu yang lebih nyaman. Itu terasa lega sebentar, lalu rasa bersalah datang, dan siklusnya berulang.</p>
+    <p>Pilih yang paling mirip dengan kamu. Boleh lebih dari satu, ganti saja pilihannya.</p>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="panel" id="panel" aria-live="polite"></div>
+</section>
+
+<section aria-labelledby="ilusi">
+  <div class="head">
+    <p class="eyebrow">Jebakan halus</p>
+    <h2 id="ilusi">Merencanakan terasa seperti bekerja</h2>
+  </div>
+  <div class="prose">
+    <p>Membuat daftar target, menonton video motivasi, menata catatan, membeli buku: semuanya memberi rasa maju. Otak mendapat sebagian kepuasan dari menyusun rencana, jadi dorongan untuk benar-benar mulai ikut mengecil. Kamu sudah merasa "sedang mengerjakan", padahal belum ada yang berubah di dunia nyata.</p>
+    <p>Ada juga kecenderungan meremehkan waktu yang dibutuhkan sebuah tugas. Psikolog menyebutnya <i>planning fallacy</i>. Rencana yang terlalu ambisius gampang gagal di hari pertama, lalu diam-diam menurunkan keyakinanmu pada rencana berikutnya.</p>
+  </div>
+</section>
+
+<section aria-labelledby="dampak">
+  <div class="head">
+    <p class="eyebrow">Usia 23</p>
+    <h2 id="dampak">Apa yang menumpuk kalau pola ini jalan terus</h2>
+  </div>
+  <p class="prose">Di usia 23 kamu belum terlambat. Yang mahal bukan umurnya, melainkan pola yang mengeras kalau dibiarkan sampai usia 28 atau 30. Ini yang biasanya menumpuk.</p>
+  <div class="ledger">
+    <div><b>Percaya pada diri sendiri</b><p>Setiap janji yang tidak ditepati ke diri sendiri mengajari otak bahwa omonganmu tidak perlu dipercaya. Rencana berikutnya terasa makin berat dimulai.</p></div>
+    <div><b>Keterampilan</b><p>Kemampuan dibangun lewat jam latihan yang berulang. Tanpa latihan, selisihmu dengan orang yang rutin berlatih melebar pelan-pelan, dan baru terasa saat ada lowongan, proyek, atau kesempatan.</p></div>
+    <div><b>Kondisi finansial</b><p>Kebiasaan menunda juga berlaku pada menabung, membuat penghasilan tambahan, dan mengurus hal-hal administratif. Dampaknya kecil per bulan, besar setelah beberapa tahun.</p></div>
+    <div><b>Rasa bersalah dan cemas</b><p>Tugas yang ditunda tidak hilang. Ia ikut ke mana-mana sebagai beban latar belakang, sehingga istirahat pun tidak benar-benar tenang.</p></div>
+    <div><b>Membandingkan diri</b><p>Melihat teman yang terlihat melaju membuat jaraknya terasa lebih besar. Perasaan itu sering memicu menyerah lebih cepat, bukan bergerak lebih cepat.</p></div>
+    <div><b>Kebiasaan</b><p>Otak menyukai pola yang sering diulang. Menunda di usia 23 lebih mudah diubah daripada setelah belasan tahun jadi cara kerja default.</p></div>
+  </div>
+</section>
+
+<section aria-labelledby="hitung">
+  <div class="head">
+    <p class="eyebrow">Hitung sendiri</p>
+    <h2 id="hitung">Seberapa besar jam kecil yang rutin?</h2>
+  </div>
+  <p class="prose">Geser angkanya. Hasilnya hanya perkalian jam, tanpa asumsi lain. Bandingkan dengan jalan di tempat, yang hasilnya nol jam.</p>
+  <div class="sim">
+    <div class="controls">
+      <div class="ctl"><label for="menit">Menit per hari <output id="oMenit">30</output></label><input id="menit" type="range" min="10" max="120" step="5" value="30"></div>
+      <div class="ctl"><label for="hari">Hari per minggu <output id="oHari">5</output></label><input id="hari" type="range" min="1" max="7" step="1" value="5"></div>
+      <div class="ctl"><label for="tahun">Lama bertahan (tahun) <output id="oTahun">3</output></label><input id="tahun" type="range" min="1" max="5" step="1" value="3"></div>
+    </div>
+    <div class="result">
+      <div class="num"><div class="n" id="rJam">390</div><div class="t">jam latihan terkumpul</div></div>
+      <div class="num"><div class="n" id="rMinggu">9,8</div><div class="t">setara minggu kerja penuh (40 jam per minggu)</div></div>
+      <div class="num zero"><div class="n">0</div><div class="t" id="rUsia">jam kalau rencananya tetap di kepala sampai usia 26</div></div>
+    </div>
+    <p class="note">Rumus: menit per hari ÷ 60 × hari per minggu × 52 minggu × tahun.</p>
+  </div>
+</section>
+
+<section aria-labelledby="kalau">
+  <div class="head">
+    <p class="eyebrow">Kalau kamu bergerak</p>
+    <h2 id="kalau">Apa yang terjadi kalau kamu tidak menunda?</h2>
+  </div>
+  <p class="prose">Ini gambaran yang masuk akal kalau kamu mengerjakan satu rencana secara konsisten dengan porsi kecil. Bukan ramalan, dan tidak ada jaminan hasil, tapi arahnya biasanya begini.</p>
+  <div class="tl">
+    <div><span class="when">Bulan pertama</span><h3>Mulai terasa ringan</h3><p>Hasilnya belum besar. Yang berubah adalah kamu punya bukti kecil bahwa kamu bisa menepati janji sendiri.</p></div>
+    <div><span class="when">Usia 23½</span><h3>Ada hasil pertama</h3><p>Satu karya, satu sertifikat, tabungan awal, atau draf pertama sudah ada. Kamu punya sesuatu yang bisa ditunjukkan.</p></div>
+    <div><span class="when">Usia 24</span><h3>Kebiasaan jadi otomatis</h3><p>Mulai tidak lagi memakan banyak tenaga mental. Kemampuanmu naik dan kamu lebih berani mengambil kesempatan.</p></div>
+    <div><span class="when">Usia 26</span><h3>Pilihan lebih banyak</h3><p>Portofolio, keahlian, dan rekam jejak menumpuk. Kamu memilih jalan dari posisi yang lebih kuat, bukan terpaksa.</p></div>
+  </div>
+</section>
+
+<section aria-labelledby="mulai">
+  <div class="head">
+    <p class="eyebrow">Mulai hari ini</p>
+    <h2 id="mulai">Tiga hal kecil yang paling membantu</h2>
+  </div>
+  <div class="three">
+    <div><h3>Kecilkan langkahnya</h3><p>Jadikan langkah pertama cukup kecil sampai terasa konyol kalau ditolak. "Buka laptop dan tulis satu kalimat" lebih mudah dimulai daripada "menulis bab satu".</p></div>
+    <div><h3>Pasang pemicu</h3><p>Peneliti Peter Gollwitzer menemukan bahwa kalimat "Kalau X terjadi, aku melakukan Y" membantu orang menindaklanjuti niat mereka. Pemicunya mengambil alih keputusan di saat kamu paling malas memutuskan.</p></div>
+    <div><h3>Kurangi gesekan</h3><p>Taruh HP di ruangan lain, siapkan alat sehari sebelumnya, tutup tab yang tidak perlu. Membuat hal yang kamu inginkan lebih mudah dan hal yang mengganggu lebih sulit.</p></div>
+  </div>
+  <div class="builder">
+    <h3>Buat kalimat pemicumu</h3>
+    <div class="field"><label for="fWaktu">Kapan? (pemicu yang sudah pasti terjadi)</label><input id="fWaktu" value="selesai sarapan" autocomplete="off"></div>
+    <div class="field"><label for="fLangkah">Langkah paling kecilnya?</label><input id="fLangkah" value="membuka laptop dan menulis satu paragraf" autocomplete="off"></div>
+    <div class="field"><label for="fDurasi">Berapa menit?</label><input id="fDurasi" type="number" min="1" max="120" value="10" inputmode="numeric"></div>
+    <div class="out" id="out"></div>
+    <button class="btn" id="copy" type="button">Salin kalimat</button>
+    <p class="muted" id="copyMsg" role="status"></p>
+  </div>
+</section>
+
+<section aria-labelledby="catatan">
+  <div class="care">
+    <h3 id="catatan">Kalau ini bukan sekadar malas</h3>
+    <p style="margin-top:8px">Kalau kamu sudah berminggu-minggu terus kehilangan minat, merasa kosong atau sangat sedih, susah tidur, atau cemas berlebihan, itu bisa lebih dari kebiasaan menunda. Depresi, kecemasan, dan ADHD sering tampak seperti "malas" dari luar. Bicara dengan psikolog atau dokter akan membantu, dan itu bukan tanda kamu lemah.</p>
+  </div>
+  <footer>Konsep yang dipakai: prokrastinasi sebagai masalah mengelola emosi (Sirois dan Pychyl), <i>present bias</i>, <i>planning fallacy</i> (Kahneman dan Tversky), dan <i>implementation intentions</i> (Gollwitzer). Ringkasan ini bukan pengganti saran profesional.</footer>
+</section>
+
+</div>
+
+<script>
+(function(){
+  var items=[
+    {k:"Terlalu besar",v:"Aku mau mengubah semuanya sekaligus.",why:"Otak melihat gunung, bukan anak tangga. Targetnya terlalu besar sehingga tidak ada titik yang jelas untuk mulai, dan tidak mulai terasa lebih aman.",step:"Potong tujuannya sampai ada satu tindakan yang selesai dalam 10 menit. Kerjakan yang itu saja."},
+    {k:"Takut hasilnya jelek",v:"Kalau aku mulai dan hasilnya buruk, berarti aku memang tidak mampu.",why:"Selama belum dimulai, kamu belum bisa gagal. Menunda melindungi harga dirimu, tapi harganya adalah kemajuanmu.",step:"Targetkan versi jelek pertama. Beri dirimu izin menghasilkan sesuatu yang berantakan selama 10 menit."},
+    {k:"Merencanakan terasa seperti kemajuan",v:"Aku rapikan jadwal dan cari tutorial dulu, baru mulai.",why:"Menyusun rencana memberi rasa puas yang mirip dengan menyelesaikan sesuatu, sehingga dorongan untuk benar-benar bertindak ikut berkurang.",step:"Batasi persiapan 15 menit. Setelah itu kerjakan langkah pertama sebelum menutup catatannya."},
+    {k:"Hiburan instan menang",v:"Cek HP sebentar saja.",why:"HP memberi hadiah detik ini juga, sedangkan hasil rencanamu baru datang berminggu-minggu lagi. Otak manusia cenderung memilih yang lebih dekat (present bias).",step:"Taruh HP di ruangan lain selama 25 menit dan pasang timer. Gesekan kecil sudah cukup mengubah kebiasaan."},
+    {k:"Capek atau kurang tidur",v:"Aku tidak punya tenaga untuk apa pun.",why:"Kadang ini bukan malas, melainkan tubuh yang kekurangan bahan bakar. Tidur kurang, jarang bergerak, atau stres panjang menguras energi untuk memulai.",step:"Perbaiki dasarnya dulu: tidur, makan, jalan kaki 10 menit. Lalu kerjakan setengah porsi dari biasanya."},
+    {k:"Tidak tahu mulai dari mana",v:"Aku bingung harus mengerjakan yang mana dulu.",why:"Langkah pertama yang kabur membuat otak terus mencari jawaban tanpa bergerak. Kebingungan itu melelahkan sendiri.",step:"Tulis kata kerja pertama yang sangat konkret, misalnya 'buka dokumen kosong dan beri judul'. Lakukan itu."}
+  ];
+  var chips=document.getElementById("chips"),panel=document.getElementById("panel"),btns=[];
+  function show(i){
+    var it=items[i];
+    btns.forEach(function(b,j){b.setAttribute("aria-pressed",j===i?"true":"false")});
+    panel.innerHTML='<p class="voice"></p><dl><div><dt>Kenapa ini terjadi</dt><dd class="why"></dd></div><div class="step"><dt>Langkah 10 menit</dt><dd class="st"></dd></div></dl>';
+    panel.querySelector(".voice").textContent="“"+it.v+"”";
+    panel.querySelector(".why").textContent=it.why;
+    panel.querySelector(".st").textContent=it.step;
+  }
+  items.forEach(function(it,i){
+    var b=document.createElement("button");b.type="button";b.className="chip";b.textContent=it.k;
+    b.setAttribute("aria-pressed","false");b.addEventListener("click",function(){show(i)});
+    chips.appendChild(b);btns.push(b);
+  });
+  show(0);
+
+  function $(id){return document.getElementById(id)}
+  function fmt(n){return n.toLocaleString("id-ID",{maximumFractionDigits:1,minimumFractionDigits:0})}
+  function sim(){
+    var m=+$("menit").value,h=+$("hari").value,t=+$("tahun").value;
+    var jam=m/60*h*52*t;
+    $("oMenit").textContent=m;$("oHari").textContent=h;$("oTahun").textContent=t;
+    $("rJam").textContent=fmt(Math.round(jam));
+    $("rMinggu").textContent=fmt(Math.round(jam/40*10)/10);
+    $("rUsia").textContent="jam kalau rencananya tetap di kepala sampai usia "+(23+t);
+  }
+  ["menit","hari","tahun"].forEach(function(id){$(id).addEventListener("input",sim)});
+  sim();
+
+  function sentence(){
+    var w=$("fWaktu").value.trim()||"[pemicu]",l=$("fLangkah").value.trim()||"[langkah kecil]",d=parseInt($("fDurasi").value,10)||10;
+    return "Kalau aku "+w+", aku akan "+l+" selama "+d+" menit.";
+  }
+  function render(){$("out").textContent=sentence()}
+  ["fWaktu","fLangkah","fDurasi"].forEach(function(id){$(id).addEventListener("input",render)});
+  render();
+  $("copy").addEventListener("click",function(){
+    var msg=$("copyMsg"),txt=sentence();
+    function fallback(){
+      var r=document.createRange();r.selectNodeContents($("out"));
+      var s=window.getSelection();s.removeAllRanges();s.addRange(r);
+      msg.textContent="Kalimatnya sudah terpilih. Salin dengan tekan lama atau Ctrl+C.";
+    }
+    try{
+      navigator.clipboard.writeText(txt).then(function(){msg.textContent="Tersalin."},fallback);
+    }catch(e){fallback()}
+  });
+})();
+</script>
+
+</body>
+</html>

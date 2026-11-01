@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Peta Karir Backend</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: peta rute. Satu jalur vertikal dengan "stasiun" per tahun kuliah, ditemani alat bantu (kalkulator, penjelajah ide kerja, ceklis). */
+:root{
+  --bg:#EDF1EE; --surface:#FFFFFF; --ink:#12312B; --muted:#4F6A63; --line:#CBD8D2; --tint:#DFE8E3;
+  --coral:#D9482B; --coral-soft:#FBE3DC; --blue:#2458D6; --blue-soft:#DCE6FB; --on-fill:#FFFFFF;
+  --display:"Familjen Grotesk","Trebuchet MS",system-ui,sans-serif;
+  --body:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1B18; --surface:#16262F; --ink:#E6F0EB; --muted:#9DB8AF; --line:#28403A; --tint:#1B2E29;
+    --coral:#FF7A59; --coral-soft:#3A221C; --blue:#8DB0FF; --blue-soft:#1C2A4A; --on-fill:#0F1B18; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1B18; --surface:#16262F; --ink:#E6F0EB; --muted:#9DB8AF; --line:#28403A; --tint:#1B2E29;
+  --coral:#FF7A59; --coral-soft:#3A221C; --blue:#8DB0FF; --blue-soft:#1C2A4A; --on-fill:#0F1B18; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--body); font-size:17px; line-height:1.65;
+  padding-block:40px 80px;
+  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:860px;margin-inline:auto;display:flex;flex-direction:column;gap:72px}
+h1,h2,h3{font-family:var(--display);line-height:1.1;margin:0;text-wrap:balance;letter-spacing:-0.015em}
+h1{font-size:clamp(2.3rem,7vw,3.8rem);font-weight:700}
+h2{font-size:clamp(1.6rem,4.6vw,2.2rem);font-weight:700}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0}
+section{display:flex;flex-direction:column;gap:22px;min-width:0}
+.head{display:flex;flex-direction:column;gap:10px}
+.eyebrow{font-family:var(--mono);font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.prose{max-width:64ch;display:flex;flex-direction:column;gap:12px}
+.muted{color:var(--muted)}
+.lede{font-size:1.15rem;max-width:62ch}
+mark{background:var(--coral);color:var(--on-fill);padding:0 .25em;border-radius:3px}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+a{color:var(--blue)}
+
+.hero{display:flex;flex-direction:column;gap:22px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
+
+.ledger{display:grid;border-top:1px solid var(--line)}
+.ledger>div{display:grid;grid-template-columns:minmax(0,12rem) minmax(0,1fr);gap:6px 24px;padding:16px 0;border-bottom:1px solid var(--line)}
+.ledger b{font-family:var(--display);font-size:1.05rem}
+@media (max-width:560px){.ledger>div{grid-template-columns:1fr}}
+
+.box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px;display:grid;gap:20px;min-width:0}
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.ctl{display:grid;gap:6px;min-width:0}
+.ctl label,.ctl legend{display:flex;justify-content:space-between;gap:8px;font-size:.92rem;font-weight:500;padding:0}
+.ctl output{font-family:var(--mono);color:var(--blue);font-weight:500}
+.ctl fieldset{border:0;margin:0;padding:0;display:grid;gap:6px}
+.opt{display:flex;gap:8px;align-items:flex-start;font-size:.92rem;cursor:pointer}
+.opt input{margin-top:5px;accent-color:var(--blue)}
+input[type=range]{width:100%;accent-color:var(--blue)}
+select{font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%;min-width:0}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px}
+.num{border-top:3px solid var(--coral);padding-top:10px}
+.num .n{font-family:var(--display);font-size:2rem;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.num .t{font-size:.88rem;color:var(--muted);margin-top:4px}
+.warn{background:var(--coral-soft);border-radius:8px;padding:12px 14px;font-size:.92rem}
+.note{font-size:.86rem;color:var(--muted)}
+
+.route{border-left:3px solid var(--line);margin-left:7px;display:flex;flex-direction:column;gap:0}
+.stop{position:relative;padding:0 0 28px 28px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.stop::before{content:"";position:absolute;left:-11px;top:4px;width:19px;height:19px;border-radius:50%;background:var(--bg);border:4px solid var(--blue)}
+.stop.start::before{border-color:var(--ink)}
+.stop.end::before{background:var(--coral);border-color:var(--coral)}
+.stop .when{font-family:var(--mono);font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.stop h3{font-size:1.2rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-family:var(--mono);font-size:.74rem;padding:3px 9px;border-radius:999px;background:var(--blue-soft);color:var(--ink)}
+.tag.hot{background:var(--coral-soft)}
+.stop .do{font-size:.95rem;max-width:62ch}
+
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.jobs{display:grid;gap:12px}
+.job{background:var(--surface);border:1px solid var(--line);border-radius:12px;min-width:0}
+.job summary{list-style:none;cursor:pointer;padding:16px 18px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;align-items:center}
+.job summary::-webkit-details-marker{display:none}
+.job summary h3{font-size:1.05rem}
+.job summary .chev{font-family:var(--mono);color:var(--muted);transition:transform .15s}
+.job[open] summary .chev{transform:rotate(90deg)}
+.meters{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.8rem;color:var(--muted)}
+.meter{display:inline-flex;align-items:center;gap:6px}
+.dots{display:inline-flex;gap:3px}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--line);display:block}
+.dots i.on{background:var(--blue)}
+.dots.c i.on{background:var(--coral)}
+.job .body{padding:0 18px 18px;display:grid;gap:12px;font-size:.96rem}
+.job dt{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.job dd{margin:2px 0 0}
+.job dl{margin:0;display:grid;gap:10px}
+.empty{padding:18px;border:1px dashed var(--line);border-radius:12px;color:var(--muted)}
+
+.prog{height:10px;background:var(--tint);border-radius:5px;overflow:hidden}
+.prog>div{height:100%;background:var(--blue);width:0}
+.group{display:grid;gap:6px}
+.group h3{font-size:1rem;margin-top:8px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:.97rem;cursor:pointer}
+.check input{margin-top:6px;accent-color:var(--blue);width:16px;height:16px;flex:none}
+.check input:checked+span{color:var(--muted);text-decoration:line-through}
+
+.ladder{display:grid;gap:12px}
+.rung{display:grid;grid-template-columns:minmax(0,8.5rem) minmax(0,1fr);gap:6px 14px;align-items:center}
+.rung b{font-family:var(--display);font-weight:500}
+.bar{position:relative;height:26px;background:var(--tint);border-radius:5px}
+.bar>span{position:absolute;top:0;bottom:0;background:var(--blue);border-radius:5px;display:flex;align-items:center;padding:0 8px;color:var(--on-fill);font-family:var(--mono);font-size:.74rem;white-space:nowrap;min-width:max-content}
+@media (max-width:560px){.rung{grid-template-columns:1fr}}
+.axis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+ul.src{margin:0;padding-left:1.1em;display:grid;gap:4px;font-size:.9rem;overflow-wrap:anywhere}
+@media (prefers-reduced-motion:no-preference){.prog>div{transition:width .25s}}
+html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="head">
+    <p class="eyebrow">Dari desainer grafis ke backend engineer</p>
+    <h1>Kamu start di 23, dan <mark>jalurnya masih panjang ke depan</mark>.</h1>
+  </div>
+  <p class="lede">Rencananya: tetap bekerja, mulai kuliah Sistem Informasi di Universitas Terbuka tahun depan, belajar backend paralel, dan mencoba beberapa pekerjaan baru sebelum wisuda. Geser angka di bawah untuk melihat versimu sendiri.</p>
+  <div class="legend" aria-hidden="true">
+    <span><i style="background:var(--ink)"></i>Sekarang</span>
+    <span><i style="background:var(--blue)"></i>Tahun kuliah</span>
+    <span><i style="background:var(--coral)"></i>Wisuda</span>
+  </div>
+</header>
+
+<section aria-labelledby="aset">
+  <div class="head"><p class="eyebrow">Modal awal</p><h2 id="aset">Yang sudah kamu bawa dari dunia desain</h2></div>
+  <div class="ledger">
+    <div><b>Mata visual (CDR, PSD, Canva)</b><p>Kamu paham tata letak dan alur pengguna. Itu membantu saat bekerja dengan tim frontend dan saat membuat dokumentasi yang enak dibaca.</p></div>
+    <div><b>Surat menyurat</b><p>Menulis jelas dan sopan adalah keterampilan yang sering kurang di tim teknis: laporan bug, dokumentasi API, dan deskripsi perubahan kode.</p></div>
+    <div><b>Menghadapi klien dan revisi</b><p>Terbiasa menerima masukan dan tenggat. Itu mirip dengan code review dan sprint.</p></div>
+    <div><b>Teliti sampai detail</b><p>Kebiasaan memeriksa jarak dan warna per piksel adalah bekal yang bagus untuk mencari bug.</p></div>
+  </div>
+  <p class="note">Yang belum ada: dasar pemrograman, basis data, dan portofolio kode. Tiga hal ini yang akan kita isi di peta.</p>
+</section>
+
+<section aria-labelledby="peta">
+  <div class="head"><p class="eyebrow">Peta waktu</p><h2 id="peta">Kapan kira-kira wisuda, dan apa yang dikerjakan tiap tahun</h2></div>
+  <div class="prose"><p>Program S1 Sistem Informasi UT dirancang sekitar 8 semester dengan total 145 SKS menurut katalog kurikulum yang kutemukan. Kalau kamu kuliah sambil kerja, porsi per semester biasanya lebih kecil, jadi lulusnya lebih lama. Atur sesuai kapasitasmu.</p></div>
+  <div class="box">
+    <div class="controls">
+      <div class="ctl"><label for="sks">SKS per semester <output id="oSks">12</output></label><input id="sks" type="range" min="8" max="20" step="1" value="12"></div>
+      <div class="ctl">
+        <fieldset><legend>Mulai kuliah</legend>
+          <label class="opt"><input type="radio" name="mulai" value="2" id="mGenap"><span>Awal 2027 (semester genap, cek apakah pendaftarannya masih dibuka)</span></label>
+          <label class="opt"><input type="radio" name="mulai" value="8" id="mGanjil" checked><span>Sekitar September 2027 (semester ganjil)</span></label>
+        </fieldset>
+      </div>
+    </div>
+    <div class="sum">
+      <div class="num"><div class="n" id="sSem">12</div><div class="t">semester sampai lulus</div></div>
+      <div class="num"><div class="n" id="sWis">Mar 2033</div><div class="t">perkiraan lulus</div></div>
+      <div class="num"><div class="n" id="sUsia">29</div><div class="t">kira-kira usiamu saat itu</div></div>
+      <div class="num"><div class="n" id="sBiaya">Rp21,6 jt</div><div class="t">perkiraan biaya kuliah (paket Rp1,8 jt per semester)</div></div>
+    </div>
+    <div class="warn" id="warn" hidden></div>
+    <p class="note">Perkiraan kasar. Tanggal tiap semester dibulatkan, biaya belum termasuk biaya lain dan tarif bisa berubah. Cek jadwal, skema bayar, dan batas masa studi di ut.ac.id.</p>
+  </div>
+  <div class="route" id="route"></div>
+</section>
+
+<section aria-labelledby="kerja">
+  <div class="head"><p class="eyebrow">Coba hal baru</p><h2 id="kerja">Ide pekerjaan yang bisa kamu coba sebelum wisuda</h2></div>
+  <div class="prose"><p>Semuanya di luar desain. Pilih waktu luangmu dan apa yang paling kamu cari, lalu daftar di bawah akan menyusun ulang. Skala titik adalah perkiraan relatif dariku, bukan data gaji.</p></div>
+  <div class="filters">
+    <div class="ctl"><label for="fJam">Waktu luang per minggu</label>
+      <select id="fJam"><option value="5">Sampai 5 jam</option><option value="10" selected>Sampai 10 jam</option><option value="20">Sampai 20 jam</option><option value="40">Lebih dari 20 jam</option></select></div>
+    <div class="ctl"><label for="fUrut">Utamakan yang</label>
+      <select id="fUrut"><option value="be" selected>Paling dekat ke backend</option><option value="inc">Penghasilannya paling baik</option><option value="new">Paling baru buatku</option></select></div>
+  </div>
+  <p class="note" id="jobCount" role="status"></p>
+  <div class="jobs" id="jobs"></div>
+</section>
+
+<section aria-labelledby="belajar">
+  <div class="head"><p class="eyebrow">Belajar mandiri</p><h2 id="belajar">Ceklis backend yang jalan bersamaan dengan kuliah</h2></div>
+  <div class="prose"><p>Dari daftar mata kuliah yang kulihat, UT mengajarkan struktur data, algoritma, basis data, rekayasa perangkat lunak, pemrograman web, dan jaringan. Hal seperti membuat API yang rapi, login, tes otomatis, dan Docker sepertinya harus kamu tambah sendiri. Ceklis ini tersimpan di browser ini saja.</p></div>
+  <div class="box">
+    <div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progBar"><div id="progFill"></div></div>
+    <p id="progText" class="note"></p>
+    <div id="checks"></div>
+  </div>
+</section>
+
+<section aria-labelledby="realita">
+  <div class="head"><p class="eyebrow">Realitanya</p><h2 id="realita">Gaji backend di Indonesia dan apa yang biasanya dicari</h2></div>
+  <div class="box">
+    <div class="ladder" role="img" aria-label="Rentang gaji per bulan: junior 6 sampai 10 juta, menengah 11 sampai 18 juta, senior 16 sampai 30 juta rupiah">
+      <div class="rung"><b>Junior (0–2 thn)</b><div class="bar"><span style="left:15%;width:10%;min-width:max-content">6–10 jt</span></div></div>
+      <div class="rung"><b>Menengah (3–5 thn)</b><div class="bar"><span style="left:27.5%;width:17.5%">11–18 jt</span></div></div>
+      <div class="rung"><b>Senior</b><div class="bar"><span style="left:40%;width:35%">16–30 jt+</span></div></div>
+      <div class="axis" aria-hidden="true"><span>Rp0</span><span>Rp10 jt</span><span>Rp20 jt</span><span>Rp30 jt</span><span>Rp40 jt</span></div>
+    </div>
+    <p class="note">Angka per bulan dari satu artikel HRIS (KantorKu, 2026). Itu perkiraan, bukan data resmi, dan artikelnya sendiri punya tanggal yang tidak konsisten. Gaji nyata sangat berbeda antar kota, perusahaan, dan negosiasi.</p>
+  </div>
+  <div class="ledger">
+    <div><b>Yang sering dicari</b><p>Satu bahasa server (Go, Java, Python, atau Node.js), SQL dan basis data, REST API dan autentikasi, serta dasar Docker dan cloud.</p></div>
+    <div><b>Soal ijazah</b><p>Banyak lowongan menyebut S1 terkait komputer, tapi portofolio kode dan pengalaman sering menentukan juga. Karena itu kuliah dan proyek sebaiknya jalan sama-sama.</p></div>
+    <div><b>Peluang yang dekat</b><p>Praktik Kerja Lapangan di kurikulum SI UT (4 SKS) bisa kamu pakai untuk magang di tim engineering. Mulai bangun portofolionya sebelum itu.</p></div>
+  </div>
+</section>
+
+<section aria-labelledby="sumber">
+  <div class="head"><h2 id="sumber" style="font-size:1.3rem">Sumber data</h2></div>
+  <ul class="src">
+    <li><a href="https://github.com/UnivTerbuka/katalog-kurikulum/blob/main/FST/sistem-informasi-s1.md" target="_blank" rel="noopener">Katalog kurikulum S1 Sistem Informasi UT (145 SKS, sebaran per semester, mata kuliah)</a></li>
+    <li><a href="https://www.goodnewsfromindonesia.id/short/mau-kuliah-di-universitas-terbuka-cek-rincian-biaya-kuliah-terbaru-2026" target="_blank" rel="noopener">Good News from Indonesia: biaya kuliah UT 2026 (SIPAS S1 Sistem Informasi Rp1,8 jt per semester)</a></li>
+    <li><a href="https://dealls.com/pengembangan-karir/kapan-pendaftaran-ut-2026-dibuka" target="_blank" rel="noopener">Dealls: jadwal pendaftaran UT semester ganjil 2026/2027</a></li>
+    <li><a href="https://kantorku.id/blog/gaji-backend-developer/" target="_blank" rel="noopener">KantorKu: gaji backend developer 2026 dan skill yang dicari</a></li>
+    <li><a href="https://si-fst.ut.ac.id/kurikulum/" target="_blank" rel="noopener">Prodi SI FST UT: kurikulum dirancang sekitar 8 semester</a></li>
+  </ul>
+  <p class="note">Angka kuliah dan jadwal bisa berubah. Pastikan lagi di ut.ac.id sebelum mendaftar.</p>
+</section>
+
+</div>
+
+<script>
+(function(){
+  function $(id){return document.getElementById(id)}
+  var BLN=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+  var TOTAL=145, UKT=1.8;
+
+  /* ---------- Peta waktu ---------- */
+  var MIL=[
+    {n:"Struktur Data",s:54},{n:"Algoritma & Pemrograman",s:74},{n:"Basis Data",s:74},{n:"Jaringan Komputer",s:74},
+    {n:"Rekayasa Perangkat Lunak",s:93},{n:"Pemrograman Web",s:113},{n:"Praktik Kerja Lapangan",s:113,hot:1},{n:"Tugas Akhir",s:130,hot:1}
+  ];
+  function dateAt(startM,months){ /* startM: 0-based bulan mulai di 2027; kembalikan {y,m} akhir periode */
+    var idx=startM+months-1, y=2027+Math.floor(idx/12), m=((idx%12)+12)%12; return {y:y,m:m};
+  }
+  function ageAt(d){ return 23+Math.floor(((d.y-2026)*12+(d.m-9))/12); }
+  function phase(f){
+    if(f<=0.35) return {t:"Fondasi",d:"Pelajari satu bahasa pemrograman, Git, dan SQL dasar. Coba satu pekerjaan sampingan yang ringan, seperti otomasi spreadsheet atau QA tester."};
+    if(f<=0.7) return {t:"Bangun proyek nyata",d:"Buat API lengkap dengan database dan login. Coba freelance web kecil atau bot sederhana untuk UMKM supaya latihanmu dibayar."};
+    if(f<0.999) return {t:"Cari pengalaman kerja",d:"Ambil PKL atau magang di tim engineering, rapikan portofolio di GitHub, dan mulai melamar posisi junior."};
+    return {t:"Wisuda dan melamar",d:"Selesaikan Tugas Akhir sambil melamar posisi junior backend. Gunakan jaringan dan hasil PKL-mu."};
+  }
+  function renderRoute(){
+    var p=+$("sks").value, start=+(document.querySelector('input[name="mulai"]:checked').value);
+    $("oSks").textContent=p;
+    var sem=Math.ceil(TOTAL/p);
+    var end=dateAt(start,sem*6);
+    $("sSem").textContent=sem;
+    $("sWis").textContent=BLN[end.m]+" "+end.y;
+    $("sUsia").textContent=ageAt(end);
+    var cost=sem*UKT; $("sBiaya").textContent="Rp"+cost.toLocaleString("id-ID",{maximumFractionDigits:1})+" jt";
+    var w=$("warn");
+    if(sem>14){w.hidden=false;w.textContent="Dengan "+p+" SKS per semester, kamu butuh "+sem+" semester. S1 di perguruan tinggi umumnya punya batas maksimal masa studi (sepengetahuanku sekitar 14 semester di UT). Cek ke ut.ac.id dan pertimbangkan menaikkan SKS per semester.";}
+    else if(sem>=11){w.hidden=false;w.textContent="Dengan "+p+" SKS per semester, kamu butuh "+sem+" semester. Itu masih mungkin, tapi mendekati batas masa studi. Pastikan batasnya di ut.ac.id.";}
+    else w.hidden=true;
+
+    var years=Math.ceil(sem/2), html="";
+    html+='<div class="stop start"><span class="when">Sekarang · Nov 2026 · usia '+23+'</span><h3>Pemanasan sambil tetap bekerja</h3><p class="do">Mulai belajar satu bahasa pemrograman, pasang Git, dan buat akun GitHub. Daftar kuliah sebelum '+(start===2?'awal':'pertengahan')+' 2027.</p></div>';
+    for(var k=1;k<=years;k++){
+      var s0=(k-1)*2+1, s1=Math.min(k*2,sem);
+      var sksEnd=Math.min(p*s1,TOTAL), f=sksEnd/TOTAL;
+      var a=dateAt(start,(s0-1)*6+1), b=dateAt(start,s1*6);
+      var ph=phase(f), last=(s1===sem);
+      var ms=MIL.filter(function(m){var si=Math.ceil(m.s/p);return si>=s0&&si<=s1});
+      var chips=ms.map(function(m){return '<span class="tag'+(m.hot?' hot':'')+'">'+m.n+'</span>'}).join("");
+      html+='<div class="stop'+(last?' end':'')+'"><span class="when">'+BLN[a.m]+' '+a.y+' – '+BLN[b.m]+' '+b.y+' · usia '+ageAt(b)+' · sem '+s0+(s1>s0?'–'+s1:'')+'</span><h3>Tahun '+k+': '+ph.t+(last?' (wisuda)':'')+'</h3>'+(chips?'<div class="chips" aria-label="Mata kuliah dan kegiatan tahun ini">'+chips+'</div>':'')+'<p class="do">'+ph.d+'</p></div>';
+    }
+    $("route").innerHTML=html;
+  }
+  $("sks").addEventListener("input",renderRoute);
+  $("mGenap").addEventListener("change",renderRoute);
+  $("mGanjil").addEventListener("change",renderRoute);
+  renderRoute();
+
+  /* ---------- Ide pekerjaan ---------- */
+  var JOBS=[
+    {n:"Otomasi Google Sheets dan Apps Script",h:4,be:4,inc:3,nw:4,lv:"Rendah",lrn:"JavaScript dasar, logika data, memakai API sederhana.",go:["Pilih satu tugas berulang di spreadsheet yang kamu kenal, lalu otomatiskan dengan Apps Script.","Tawarkan hasilnya ke 2–3 toko atau UMKM di sekitarmu."]},
+    {n:"QA tester (manual atau crowdtest)",h:5,be:3,inc:2,nw:5,lv:"Rendah",lrn:"Alur produk digital, menulis laporan bug yang jelas, dasar Postman.",go:["Coba aplikasi yang kamu pakai sehari-hari dan tulis 5 laporan bug lengkap dengan langkah dan tangkapan layar.","Cari platform crowdtesting atau lowongan QA junior dan lampirkan laporan tadi."]},
+    {n:"Technical writer / dokumentasi",h:5,be:3,inc:3,nw:4,lv:"Rendah",lrn:"Membaca kode dan API, menulis README dan panduan yang rapi.",go:["Pilih proyek open source kecil dan perbaiki README atau dokumentasinya.","Jadikan 2–3 dokumen itu portofolio menulis teknis."]},
+    {n:"Web developer freelance (landing page, WordPress)",h:8,be:3,inc:4,nw:3,lv:"Sedang",lrn:"HTML, CSS, JavaScript, hosting, domain, bekerja dengan klien.",go:["Buat satu landing page untuk dirimu sendiri dengan HTML dan CSS.","Tawarkan paket sederhana ke usaha kecil yang belum punya website."]},
+    {n:"Otomasi no-code (Zapier, Make, n8n)",h:6,be:3,inc:3,nw:5,lv:"Rendah",lrn:"Berpikir dalam alur, webhook, integrasi antar aplikasi.",go:["Bangun satu alur otomatis untuk dirimu, misalnya formulir masuk lalu pesan WhatsApp atau email.","Pasarkan jasa yang sama ke UMKM yang masih mencatat manual."]},
+    {n:"Pembuat bot atau scraper Python kecil",h:6,be:5,inc:3,nw:5,lv:"Sedang",lrn:"Python, HTTP, parsing data, jadwal otomatis, penyimpanan ke database.",go:["Buat bot yang mengumpulkan data publik yang berguna, lalu simpan ke database.","Patuhi aturan situs dan hormati privasi data. Jangan ambil data pribadi."]},
+    {n:"Kontributor open source atau peserta hackathon",h:5,be:5,inc:1,nw:5,lv:"Sedang",lrn:"Git, kerja tim, code review, membaca kode orang lain.",go:["Cari isu berlabel pemula di proyek yang kamu pakai.","Ikuti komunitas teknologi di kotamu atau hackathon online."]},
+    {n:"IT support / helpdesk",h:20,be:2,inc:3,nw:5,lv:"Rendah",lrn:"Jaringan, perangkat, memecahkan masalah dengan pengguna nyata.",go:["Pelajari dasar jaringan dan sistem operasi. Cocok dengan mata kuliah Jaringan Komputer.","Lamar posisi support atau helpdesk paruh waktu di perusahaan kecil."]},
+    {n:"Customer support di perusahaan produk digital",h:20,be:2,inc:3,nw:5,lv:"Rendah",lrn:"Cara produk digital bekerja, sistem tiket, dan keluhan pengguna yang sering muncul.",go:["Lamar posisi support di startup atau SaaS yang produknya kamu suka.","Catat pola keluhan yang berulang. Itu bahan berharga untuk calon engineer."]},
+    {n:"Business atau system analyst junior",h:20,be:3,inc:4,nw:5,lv:"Sedang",lrn:"Menerjemahkan kebutuhan jadi spesifikasi, diagram alur, dan basis data.",go:["Latih diagram alur dan desain tabel sederhana. Itu juga isi kuliah SI.","Cari posisi analis junior atau asisten product."]},
+    {n:"Operasional toko online (marketplace)",h:15,be:1,inc:3,nw:4,lv:"Rendah",lrn:"Stok, laporan penjualan, iklan marketplace, dan angka bisnis.",go:["Bantu satu toko online mengelola pesanan dan laporan.","Buat rekap penjualan di spreadsheet, lalu coba otomatiskan."]},
+    {n:"Mengajar komputer atau dasar coding untuk pemula",h:5,be:2,inc:2,nw:3,lv:"Rendah",lrn:"Menjelaskan konsep dengan sederhana, yang memperdalam pemahamanmu sendiri.",go:["Buka kelas kecil Excel atau Google Workspace untuk tetangga atau komunitas.","Naik ke dasar coding setelah kamu merasa nyaman."]},
+    {n:"Data annotator / pelabelan data (remote)",h:8,be:1,inc:2,nw:5,lv:"Rendah",lrn:"Ketelitian, memahami cara data dipakai untuk melatih AI.",go:["Cari platform pelabelan data yang terpercaya dan baca syarat serta pembayarannya dengan teliti.","Pakai ini hanya sebagai penghasilan tambahan sementara."]},
+    {n:"Magang atau PKL di tim engineering",h:20,be:5,inc:2,nw:5,lv:"Tinggi",lrn:"Alur kerja tim, code review, deploy, dan kode produksi sungguhan.",go:["Siapkan 2–3 proyek backend di GitHub dan CV yang rapi.","Lamar ke startup lokal atau perusahaan yang punya tim engineering. Praktik Kerja Lapangan di kurikulum SI bisa dipakai untuk ini."]}
+  ];
+  function dots(n,cls){var h='<span class="dots '+(cls||'')+'" aria-hidden="true">';for(var i=1;i<=5;i++)h+='<i'+(i<=n?' class="on"':'')+'></i>';return h+'</span>'}
+  function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
+  function renderJobs(){
+    var cap=+$("fJam").value, key=$("fUrut").value;
+    var list=JOBS.filter(function(j){return j.h<=cap}).slice().sort(function(a,b){
+      var ka=key==="be"?a.be:key==="inc"?a.inc:a.nw, kb=key==="be"?b.be:key==="inc"?b.inc:b.nw;
+      return kb-ka || a.h-b.h;
+    });
+    $("jobCount").textContent=list.length+" dari "+JOBS.length+" ide cocok dengan waktu luangmu.";
+    if(!list.length){$("jobs").innerHTML='<div class="empty">Belum ada ide yang cocok. Naikkan waktu luang per minggu.</div>';return}
+    $("jobs").innerHTML=list.map(function(j){
+      return '<details class="job"><summary><h3>'+esc(j.n)+'</h3><span class="chev" aria-hidden="true">›</span><div class="meters"><span class="meter">Nyambung ke backend '+dots(j.be)+'</span><span class="meter">Penghasilan '+dots(j.inc,"c")+'</span><span class="meter">Baru buatmu '+dots(j.nw)+'</span><span class="meter">Mulai dari ±'+j.h+' jam per minggu</span></div></summary><div class="body"><dl><div><dt>Hambatan masuk</dt><dd>'+esc(j.lv)+'</dd></div><div><dt>Yang kamu pelajari</dt><dd>'+esc(j.lrn)+'</dd></div><div><dt>Cara mulai</dt><dd>'+j.go.map(function(g){return '• '+esc(g)}).join('<br>')+'</dd></div></dl></div></details>';
+    }).join("");
+  }
+  $("fJam").addEventListener("change",renderJobs);
+  $("fUrut").addEventListener("change",renderJobs);
+  renderJobs();
+
+  /* ---------- Ceklis ---------- */
+  var GROUPS=[
+    {t:"Fondasi",i:["Pakai Git dan GitHub, dan dorong repo pertamamu","Nyaman memakai terminal untuk perintah dasar","Satu bahasa utama (Python, JavaScript, Go, atau Java) sampai bisa membuat program 200 baris","SQL dasar: SELECT, JOIN, GROUP BY","Struktur data dasar: array, hash map, rekursi"]},
+    {t:"Inti backend",i:["Membuat REST API dengan operasi tambah, baca, ubah, hapus","Merancang tabel di PostgreSQL atau MySQL","Login dan otorisasi (JWT atau OAuth2)","Menulis tes otomatis untuk API","Menjalankan aplikasi di Docker"]},
+    {t:"Portofolio",i:["Proyek 1: aplikasi arsip surat atau tiket klien (dari pengalaman surat menyuratmu)","Proyek 2: integrasi pihak ketiga, misalnya pembayaran atau bot chat","Proyek 3: deploy ke cloud dengan README yang rapi","Profil GitHub dan LinkedIn yang terisi"]},
+    {t:"Siap kerja",i:["Ngobrol dengan 5 orang yang sudah jadi backend engineer","Latihan soal algoritma dan simulasi wawancara","PKL atau magang di tim engineering","Melamar 20 posisi junior atau magang"]}
+  ];
+  var KEY="peta-karir-backend-checks", saved={};
+  try{saved=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){saved={}}
+  var total=0,html="";
+  GROUPS.forEach(function(g,gi){
+    html+='<div class="group"><h3>'+esc(g.t)+'</h3>';
+    g.i.forEach(function(it,ii){
+      var id="c"+gi+"_"+ii; total++;
+      html+='<label class="check" for="'+id+'"><input type="checkbox" id="'+id+'"'+(saved[id]?' checked':'')+'><span>'+esc(it)+'</span></label>';
+    });
+    html+='</div>';
+  });
+  $("checks").innerHTML=html;
+  function upd(){
+    var boxes=$("checks").querySelectorAll("input"),n=0,s={};
+    boxes.forEach(function(b){if(b.checked){n++;s[b.id]=1}});
+    var pct=Math.round(n/total*100);
+    $("progFill").style.width=pct+"%";
+    $("progBar").setAttribute("aria-valuenow",pct);
+    $("progText").textContent=n+" dari "+total+" selesai ("+pct+"%)";
+    try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}
+  }
+  $("checks").addEventListener("change",upd);
+  upd();
+})();
+</script>
+
+</body>
+</html>
